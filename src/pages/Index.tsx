@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { TopBar } from "@/components/TopBar";
@@ -7,7 +6,6 @@ import { ResourceGrid } from "@/components/ResourceGrid";
 import { SearchDialog } from "@/components/SearchDialog";
 import { ThemeFab } from "@/components/ThemeFab";
 import { Footer } from "@/components/Footer";
-import { ThemeProvider } from "@/hooks/use-theme";
 import { mockCategories, mockResources } from "@/data/mock-data";
 import { Resource } from "@/types";
 import { motion } from "framer-motion";
@@ -73,69 +71,67 @@ const Index = () => {
   };
 
   return (
-    <ThemeProvider>
-      <div className="min-h-screen flex flex-col">
-        <TopBar 
-          onOpenSearch={() => setSearchOpen(true)}
-          onToggleSidebar={toggleSidebar}
-          sidebarOpen={sidebarOpen}
+    <div className="min-h-screen flex flex-col">
+      <TopBar 
+        onOpenSearch={() => setSearchOpen(true)}
+        onToggleSidebar={toggleSidebar}
+        sidebarOpen={sidebarOpen}
+      />
+      
+      <div className="flex flex-1 relative">
+        <SidebarNav 
+          selectedCategory={selectedCategory}
+          selectedSubcategory={selectedSubcategory}
+          onSelectCategory={handleSelectCategory}
+          onSelectSubcategory={handleSelectSubcategory}
+          isOpen={sidebarOpen}
         />
         
-        <div className="flex flex-1 relative">
-          <SidebarNav 
-            selectedCategory={selectedCategory}
-            selectedSubcategory={selectedSubcategory}
-            onSelectCategory={handleSelectCategory}
-            onSelectSubcategory={handleSelectSubcategory}
-            isOpen={sidebarOpen}
+        <motion.main 
+          className="flex-1 container py-6 px-4 md:px-6"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          {selectedCategory && (
+            <div className="mb-4 text-sm text-muted-foreground">
+              <span className="hover:text-primary cursor-pointer" onClick={() => {
+                setSelectedCategory(undefined);
+                setSelectedSubcategory(undefined);
+              }}>Home</span>
+              {' / '}
+              <span className={!selectedSubcategory ? "text-primary" : "hover:text-primary cursor-pointer"} onClick={() => {
+                setSelectedSubcategory(undefined);
+              }}>
+                {mockCategories.find(c => c.id === selectedCategory)?.name}
+              </span>
+              {selectedSubcategory && (
+                <>
+                  {' / '}
+                  <span className="text-primary">
+                    {mockCategories.find(c => c.id === selectedCategory)?.subcategories.find(s => s.id === selectedSubcategory)?.name}
+                  </span>
+                </>
+              )}
+            </div>
+          )}
+          <ResourceGrid 
+            resources={displayResources}
+            title={pageTitle}
           />
-          
-          <motion.main 
-            className="flex-1 container py-6 px-4 md:px-6"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            {selectedCategory && (
-              <div className="mb-4 text-sm text-muted-foreground">
-                <span className="hover:text-primary cursor-pointer" onClick={() => {
-                  setSelectedCategory(undefined);
-                  setSelectedSubcategory(undefined);
-                }}>Home</span>
-                {' / '}
-                <span className={!selectedSubcategory ? "text-primary" : "hover:text-primary cursor-pointer"} onClick={() => {
-                  setSelectedSubcategory(undefined);
-                }}>
-                  {mockCategories.find(c => c.id === selectedCategory)?.name}
-                </span>
-                {selectedSubcategory && (
-                  <>
-                    {' / '}
-                    <span className="text-primary">
-                      {mockCategories.find(c => c.id === selectedCategory)?.subcategories.find(s => s.id === selectedSubcategory)?.name}
-                    </span>
-                  </>
-                )}
-              </div>
-            )}
-            <ResourceGrid 
-              resources={displayResources}
-              title={pageTitle}
-            />
-          </motion.main>
-        </div>
-        
-        <Footer />
-        
-        <SearchDialog 
-          open={searchOpen}
-          onOpenChange={setSearchOpen}
-          onSelectResource={handleSelectResource}
-        />
-        
-        <ThemeFab />
+        </motion.main>
       </div>
-    </ThemeProvider>
+      
+      <Footer />
+      
+      <SearchDialog 
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+        onSelectResource={handleSelectResource}
+      />
+      
+      <ThemeFab />
+    </div>
   );
 };
 

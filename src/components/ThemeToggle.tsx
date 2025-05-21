@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
 
 export function ThemeToggle() {
-  const { isDarkMode, toggleDarkMode } = useTheme();
+  const { isDarkMode, setIsDarkMode } = useTheme();
 
   return (
     <Button
-      variant="outline"
+      variant="ghost"
       size="icon"
-      onClick={toggleDarkMode}
+      onClick={() => setIsDarkMode(!isDarkMode)}
       aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
     >
       {isDarkMode ? (

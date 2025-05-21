@@ -11,55 +11,55 @@ type ThemeProviderProps = {
 type ThemeProviderState = {
   theme: Theme;
   setTheme: (theme: Theme) => void;
-  toggleDarkMode: () => void;
   isDarkMode: boolean;
+  setIsDarkMode: (isDark: boolean) => void;
 };
 
 const initialState: ThemeProviderState = {
-  theme: "default",
+  theme: "rose",
   setTheme: () => null,
-  toggleDarkMode: () => null,
-  isDarkMode: false,
+  isDarkMode: true,
+  setIsDarkMode: () => null,
 };
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
 export function ThemeProvider({
   children,
-  defaultTheme = "default",
+  defaultTheme = "rose",
   storageKey = "awesome-list-theme",
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(defaultTheme);
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem(storageKey) as Theme | null;
-    const systemPrefers = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const savedDarkMode = localStorage.getItem(`${storageKey}-dark-mode`);
+    const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     
+    // Set theme
     if (savedTheme) {
       setTheme(savedTheme);
       document.documentElement.setAttribute("data-theme", savedTheme);
+    } else {
+      setTheme("rose");
+      document.documentElement.setAttribute("data-theme", "rose");
     }
 
-    // Check if dark mode is already saved in the theme
-    setIsDarkMode(savedTheme === "dark" || (!savedTheme && systemPrefers));
+    // Set dark mode
+    const prefersDark = savedDarkMode !== null 
+      ? savedDarkMode === "true" 
+      : systemPrefersDark;
     
-    if (isDarkMode) {
+    setIsDarkMode(prefersDark);
+    
+    if (prefersDark) {
       document.documentElement.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
     }
   }, [storageKey]);
-
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-    if (!isDarkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  };
 
   const value = {
     theme,
@@ -68,8 +68,17 @@ export function ThemeProvider({
       setTheme(theme);
       document.documentElement.setAttribute("data-theme", theme);
     },
-    toggleDarkMode,
-    isDarkMode
+    isDarkMode,
+    setIsDarkMode: (isDark: boolean) => {
+      localStorage.setItem(`${storageKey}-dark-mode`, String(isDark));
+      setIsDarkMode(isDark);
+      
+      if (isDark) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    }
   };
 
   return (

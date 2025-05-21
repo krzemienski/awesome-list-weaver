@@ -1,38 +1,38 @@
 
-export interface Resource {
+export type Resource = {
   id: string;
   title: string;
   url: string;
   description: string;
   category: string;
   subcategory?: string;
-}
+  tags?: string[];
+};
 
-export interface Category {
-  id: string;
-  name: string;
-  subcategories: Subcategory[];
-  resources: Resource[];
-}
-
-export interface Subcategory {
-  id: string;
-  name: string;
-  resources: Resource[];
-}
-
-// Updated SearchResult interface to match Fuse.js's FuseResult type
-export interface SearchResult {
+export type SearchResult = {
   item: Resource;
   refIndex: number;
-  score?: number; // Changed from required to optional to match Fuse.js type
-}
+  score?: number;
+};
 
+export type Category = {
+  id: string;
+  name: string;
+  resources: Resource[];
+  subcategories: Subcategory[];
+};
+
+export type Subcategory = {
+  id: string;
+  name: string;
+  resources: Resource[];
+};
+
+// Add or update theme type to include all supported themes
 export type Theme = 
   | "default" 
-  | "dark" 
-  | "red" 
   | "rose" 
+  | "red" 
   | "orange" 
   | "green" 
   | "blue" 

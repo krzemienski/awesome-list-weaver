@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Check, ChevronDown, Palette } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -22,8 +22,8 @@ import { motion } from "framer-motion";
 
 const themes: { value: Theme; label: string }[] = [
   { value: "default", label: "Default" },
-  { value: "red", label: "Red" },
   { value: "rose", label: "Rose" },
+  { value: "red", label: "Red" },
   { value: "orange", label: "Orange" },
   { value: "green", label: "Green" },
   { value: "blue", label: "Blue" },
@@ -65,7 +65,7 @@ export function ThemeSelector() {
                 border: "1px solid hsl(var(--border))"
               }}
             />
-            <span>{themes.find((t) => t.value === theme)?.label || "Default"}</span>
+            <span>{themes.find((t) => t.value === theme)?.label || "Rose"}</span>
           </div>
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
