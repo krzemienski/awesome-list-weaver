@@ -80,7 +80,7 @@ export function ThemeSelector() {
                 border: "1px solid hsl(var(--border))"
               }}
             />
-            <span>{themes.find((t) => t.value === theme)?.label || "Orange"}</span>
+            <span>{themes.find((t) => t.value === theme)?.label || "Red"}</span>
           </div>
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>

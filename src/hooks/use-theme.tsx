@@ -16,7 +16,7 @@ type ThemeProviderState = {
 };
 
 const initialState: ThemeProviderState = {
-  theme: "orange",
+  theme: "red",
   setTheme: () => null,
   isDarkMode: true,
   setIsDarkMode: () => null,
@@ -26,7 +26,7 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
 export function ThemeProvider({
   children,
-  defaultTheme = "orange",
+  defaultTheme = "red",
   storageKey = "awesome-list-theme",
   ...props
 }: ThemeProviderProps) {
@@ -37,12 +37,12 @@ export function ThemeProvider({
     const savedTheme = localStorage.getItem(storageKey) as Theme | null;
     const savedDarkMode = localStorage.getItem(`${storageKey}-dark-mode`);
     
-    // Set theme - default to orange if no saved theme
+    // Set theme - default to red if no saved theme
     if (savedTheme && ["default", "rose", "red", "orange", "green", "blue", "yellow", "violet"].includes(savedTheme)) {
       setTheme(savedTheme);
     } else {
-      setTheme("orange");
-      localStorage.setItem(storageKey, "orange");
+      setTheme("red");
+      localStorage.setItem(storageKey, "red");
     }
     
     // Set dark mode - default to true if no saved preference
