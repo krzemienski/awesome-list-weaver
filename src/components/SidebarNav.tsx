@@ -164,19 +164,18 @@ export function SidebarNav({
     );
   }
 
-  if (!isOpen) {
-    return null; // Hide sidebar when collapsed on desktop
-  }
-
+  // For desktop view
   return (
     <motion.div
-      initial={{ width: 0, opacity: 0 }}
-      animate={{ width: "280px", opacity: 1 }}
+      initial={{ width: isOpen ? "280px" : 0, opacity: isOpen ? 1 : 0 }}
+      animate={{ width: isOpen ? "280px" : 0, opacity: isOpen ? 1 : 0 }}
       exit={{ width: 0, opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="hidden md:block border-r h-[calc(100vh-4rem)]"
+      className={cn("hidden md:block border-r h-[calc(100vh-4rem)]", 
+        !isOpen && "w-0 opacity-0"
+      )}
     >
-      <NavContent />
+      {isOpen && <NavContent />}
     </motion.div>
   );
 }

@@ -46,19 +46,17 @@ export function ThemeProvider({
     }
     
     // Set dark mode - default to true if no saved preference
-    const prefersDark = savedDarkMode !== null 
-      ? savedDarkMode === "true" 
-      : true; // Default to dark mode
-    
-    setIsDarkMode(prefersDark);
-    localStorage.setItem(`${storageKey}-dark-mode`, String(prefersDark));
+    if (savedDarkMode !== null) {
+      setIsDarkMode(savedDarkMode === "true");
+    } else {
+      setIsDarkMode(true);
+      localStorage.setItem(`${storageKey}-dark-mode`, "true");
+    }
   }, [storageKey]);
 
   // Apply theme and dark mode changes to document
   useEffect(() => {
-    if (theme) {
-      document.documentElement.setAttribute("data-theme", theme);
-    }
+    document.documentElement.setAttribute("data-theme", theme);
     
     if (isDarkMode) {
       document.documentElement.classList.add("dark");

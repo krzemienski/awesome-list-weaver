@@ -26,7 +26,9 @@ const Index = () => {
     if (storedSidebarState) {
       setSidebarOpen(storedSidebarState === "open");
     }
+  }, []);
 
+  useEffect(() => {
     if (selectedCategory && selectedSubcategory) {
       const category = mockCategories.find(c => c.id === selectedCategory);
       const subcategory = category?.subcategories.find(s => s.id === selectedSubcategory);

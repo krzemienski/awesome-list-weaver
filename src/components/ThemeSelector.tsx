@@ -47,21 +47,6 @@ export function ThemeSelector() {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
-  // Helper function to get theme specific color variable
-  const getThemeColor = (themeName: Theme) => {
-    const dummyEl = document.createElement('div');
-    dummyEl.style.display = 'none';
-    dummyEl.setAttribute('data-theme', themeName);
-    document.body.appendChild(dummyEl);
-    
-    // Get the computed style based on the current theme
-    const style = getComputedStyle(dummyEl);
-    const color = style.getPropertyValue('--primary').trim();
-    
-    document.body.removeChild(dummyEl);
-    return color || 'hsl(var(--primary))';
-  };
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
