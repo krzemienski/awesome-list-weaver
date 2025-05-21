@@ -50,7 +50,9 @@ export function SearchDialog({
   // Handle search
   useEffect(() => {
     if (query) {
-      setResults(fuse.search(query));
+      // Cast the Fuse results to our SearchResult type since we've made them compatible
+      const fuseResults = fuse.search(query);
+      setResults(fuseResults as SearchResult[]);
     } else {
       setResults([]);
     }
