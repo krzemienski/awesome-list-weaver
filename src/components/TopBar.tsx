@@ -20,8 +20,9 @@ export function TopBar({ onOpenSearch, onToggleSidebar, sidebarOpen }: TopBarPro
             size="icon"
             onClick={onToggleSidebar}
             aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+            className="hover:bg-secondary"
           >
-            {sidebarOpen ? <ChevronLeft className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            {sidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
           <h1 className="text-lg font-bold">AwesomeListStaticSite</h1>
         </div>

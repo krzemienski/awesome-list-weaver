@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { TopBar } from "@/components/TopBar";
@@ -20,6 +21,12 @@ const Index = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Check if there's a stored sidebar preference
+    const storedSidebarState = localStorage.getItem("sidebar-state");
+    if (storedSidebarState) {
+      setSidebarOpen(storedSidebarState === "open");
+    }
+
     if (selectedCategory && selectedSubcategory) {
       const category = mockCategories.find(c => c.id === selectedCategory);
       const subcategory = category?.subcategories.find(s => s.id === selectedSubcategory);
@@ -62,12 +69,18 @@ const Index = () => {
     window.open(resource.url, "_blank", "noopener,noreferrer");
     
     // Update category/subcategory selection
-    handleSelectCategory(mockCategories.find(c => c.id === 
-      mockCategories.find(c => c.resources.some(r => r.id === resource.id))?.id)?.id || "");
+    const categoryWithResource = mockCategories.find(c => 
+      c.resources.some(r => r.id === resource.id));
+    
+    if (categoryWithResource) {
+      handleSelectCategory(categoryWithResource.id);
+    }
   };
 
   const toggleSidebar = () => {
-    setSidebarOpen(prev => !prev);
+    const newState = !sidebarOpen;
+    setSidebarOpen(newState);
+    localStorage.setItem("sidebar-state", newState ? "open" : "closed");
   };
 
   return (

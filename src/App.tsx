@@ -9,13 +9,11 @@ import { ThemeProvider } from "@/hooks/use-theme";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
-import Fuse from 'fuse.js';
-
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
+    <ThemeProvider defaultTheme="orange">
       <TooltipProvider>
         <Toaster />
         <Sonner />

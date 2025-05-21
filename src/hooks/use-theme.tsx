@@ -16,7 +16,7 @@ type ThemeProviderState = {
 };
 
 const initialState: ThemeProviderState = {
-  theme: "rose",
+  theme: "orange",
   setTheme: () => null,
   isDarkMode: true,
   setIsDarkMode: () => null,
@@ -26,7 +26,7 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
 export function ThemeProvider({
   children,
-  defaultTheme = "rose",
+  defaultTheme = "orange",
   storageKey = "awesome-list-theme",
   ...props
 }: ThemeProviderProps) {
@@ -43,8 +43,8 @@ export function ThemeProvider({
       setTheme(savedTheme);
       document.documentElement.setAttribute("data-theme", savedTheme);
     } else {
-      setTheme("rose");
-      document.documentElement.setAttribute("data-theme", "rose");
+      setTheme("orange");
+      document.documentElement.setAttribute("data-theme", "orange");
     }
 
     // Set dark mode
