@@ -8,8 +8,11 @@ import {
 } from "@/components/ui/popover";
 import { ThemeSelector } from "@/components/ThemeSelector";
 import { motion } from "framer-motion";
+import { useTheme } from "@/hooks/use-theme";
 
 export function ThemeFab() {
+  const { theme } = useTheme();
+  
   return (
     <motion.div 
       className="fixed bottom-6 right-6 z-50"

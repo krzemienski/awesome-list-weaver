@@ -36,48 +36,47 @@ export function ThemeProvider({
   useEffect(() => {
     const savedTheme = localStorage.getItem(storageKey) as Theme | null;
     const savedDarkMode = localStorage.getItem(`${storageKey}-dark-mode`);
-    const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     
-    // Set theme
-    if (savedTheme) {
+    // Set theme - default to orange if no saved theme
+    if (savedTheme && ["default", "rose", "red", "orange", "green", "blue", "yellow", "violet"].includes(savedTheme)) {
       setTheme(savedTheme);
-      document.documentElement.setAttribute("data-theme", savedTheme);
     } else {
       setTheme("orange");
-      document.documentElement.setAttribute("data-theme", "orange");
+      localStorage.setItem(storageKey, "orange");
     }
-
-    // Set dark mode
+    
+    // Set dark mode - default to true if no saved preference
     const prefersDark = savedDarkMode !== null 
       ? savedDarkMode === "true" 
-      : systemPrefersDark;
+      : true; // Default to dark mode
     
     setIsDarkMode(prefersDark);
+    localStorage.setItem(`${storageKey}-dark-mode`, String(prefersDark));
+  }, [storageKey]);
+
+  // Apply theme and dark mode changes to document
+  useEffect(() => {
+    if (theme) {
+      document.documentElement.setAttribute("data-theme", theme);
+    }
     
-    if (prefersDark) {
+    if (isDarkMode) {
       document.documentElement.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
     }
-  }, [storageKey]);
+  }, [theme, isDarkMode]);
 
   const value = {
     theme,
-    setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme);
-      setTheme(theme);
-      document.documentElement.setAttribute("data-theme", theme);
+    setTheme: (newTheme: Theme) => {
+      localStorage.setItem(storageKey, newTheme);
+      setTheme(newTheme);
     },
     isDarkMode,
     setIsDarkMode: (isDark: boolean) => {
       localStorage.setItem(`${storageKey}-dark-mode`, String(isDark));
       setIsDarkMode(isDark);
-      
-      if (isDark) {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
     }
   };
 
