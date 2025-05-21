@@ -14,7 +14,7 @@ export function useIsMobile() {
     // Check on initial load
     checkIfMobile()
     
-    // Add event listener for resize
+    // Add event listener for both resize and orientation change
     window.addEventListener("resize", checkIfMobile)
     window.addEventListener("orientationchange", checkIfMobile)
     

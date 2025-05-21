@@ -31,11 +31,11 @@ export function ThemeProvider({
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(defaultTheme);
+  // Always use dark mode
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem(storageKey) as Theme | null;
-    const savedDarkMode = localStorage.getItem(`${storageKey}-dark-mode`);
     
     // Set theme - default to red if no saved theme
     if (savedTheme && ["default", "rose", "red", "orange", "green", "blue", "yellow", "violet"].includes(savedTheme)) {
@@ -45,25 +45,16 @@ export function ThemeProvider({
       localStorage.setItem(storageKey, "red");
     }
     
-    // Set dark mode - default to true if no saved preference
-    if (savedDarkMode !== null) {
-      setIsDarkMode(savedDarkMode === "true");
-    } else {
-      setIsDarkMode(true);
-      localStorage.setItem(`${storageKey}-dark-mode`, "true");
-    }
+    // Always force dark mode, ignoring saved preference
+    localStorage.setItem(`${storageKey}-dark-mode`, "true");
   }, [storageKey]);
 
-  // Apply theme and dark mode changes to document
+  // Apply theme and always use dark mode
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
-    
-    if (isDarkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [theme, isDarkMode]);
+    // Always add dark class
+    document.documentElement.classList.add("dark");
+  }, [theme]);
 
   const value = {
     theme,
@@ -71,10 +62,10 @@ export function ThemeProvider({
       localStorage.setItem(storageKey, newTheme);
       setTheme(newTheme);
     },
-    isDarkMode,
-    setIsDarkMode: (isDark: boolean) => {
-      localStorage.setItem(`${storageKey}-dark-mode`, String(isDark));
-      setIsDarkMode(isDark);
+    isDarkMode: true, // Always return true
+    setIsDarkMode: () => {
+      // Do nothing - we always want dark mode
+      localStorage.setItem(`${storageKey}-dark-mode`, "true");
     }
   };
 
