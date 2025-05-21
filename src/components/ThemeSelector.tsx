@@ -18,6 +18,7 @@ import {
 import { useTheme } from "@/hooks/use-theme";
 import { cn } from "@/lib/utils";
 import { Theme } from "@/types";
+import { motion } from "framer-motion";
 
 const themes: { value: Theme; label: string }[] = [
   { value: "default", label: "Default" },
@@ -57,7 +58,13 @@ export function ThemeSelector() {
           className="w-full justify-between"
         >
           <div className="flex items-center gap-2">
-            <Palette className="h-4 w-4" />
+            <div 
+              className="w-4 h-4 rounded-full" 
+              style={{ 
+                backgroundColor: `hsl(var(--primary))`,
+                border: "1px solid hsl(var(--border))"
+              }}
+            />
             <span>{themes.find((t) => t.value === theme)?.label || "Default"}</span>
           </div>
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -77,7 +84,17 @@ export function ThemeSelector() {
                     setTheme(value as Theme);
                     setOpen(false);
                   }}
+                  className="flex items-center gap-2"
                 >
+                  <motion.div 
+                    className="w-4 h-4 rounded-full flex-shrink-0"
+                    style={{ 
+                      backgroundColor: `var(--${t.value}-theme-primary, hsl(var(--primary)))`,
+                      border: "1px solid hsl(var(--border))"
+                    }}
+                    whileHover={{ scale: 1.2 }}
+                    transition={{ duration: 0.2 }}
+                  />
                   {t.label}
                   <Check
                     className={cn(

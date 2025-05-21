@@ -1,13 +1,13 @@
 
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Menu } from "lucide-react";
+import { ChevronDown, ChevronRight, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
+  SheetClose,
 } from "@/components/ui/sheet";
 import {
   ResizableHandle,
@@ -15,6 +15,7 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Category } from "@/types";
 import { mockCategories } from "@/data/mock-data";
@@ -25,6 +26,7 @@ interface SidebarNavProps {
   selectedSubcategory?: string;
   onSelectCategory: (categoryId: string) => void;
   onSelectSubcategory: (categoryId: string, subcategoryId: string) => void;
+  isOpen: boolean;
 }
 
 export function SidebarNav({
@@ -32,9 +34,10 @@ export function SidebarNav({
   selectedSubcategory,
   onSelectCategory,
   onSelectSubcategory,
+  isOpen,
 }: SidebarNavProps) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [isOpen, setIsOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const isMobile = useIsMobile();
 
   const toggleExpanded = (categoryId: string) => {
@@ -47,14 +50,14 @@ export function SidebarNav({
   const handleCategoryClick = (categoryId: string) => {
     onSelectCategory(categoryId);
     if (isMobile) {
-      setIsOpen(false);
+      setSheetOpen(false);
     }
   };
 
   const handleSubcategoryClick = (categoryId: string, subcategoryId: string) => {
     onSelectSubcategory(categoryId, subcategoryId);
     if (isMobile) {
-      setIsOpen(false);
+      setSheetOpen(false);
     }
   };
 
@@ -94,7 +97,13 @@ export function SidebarNav({
             </div>
             
             {expanded[category.id] && category.subcategories.length > 0 && (
-              <div className="pl-4 pt-1">
+              <motion.div 
+                className="pl-4 pt-1"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+              >
                 {category.subcategories.map((subcategory) => (
                   <Button
                     key={subcategory.id}
@@ -111,7 +120,7 @@ export function SidebarNav({
                     </span>
                   </Button>
                 ))}
-              </div>
+              </motion.div>
             )}
           </div>
         ))}
@@ -121,16 +130,14 @@ export function SidebarNav({
 
   if (isMobile) {
     return (
-      <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetTrigger asChild>
-          <Button variant="outline" size="icon" className="mr-2">
-            <Menu size={16} />
-            <span className="sr-only">Toggle menu</span>
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="w-64">
-          <SheetHeader>
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent side="left" className="w-[280px] p-0">
+          <SheetHeader className="px-4 py-3 border-b">
             <SheetTitle>Categories</SheetTitle>
+            <SheetClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </SheetClose>
           </SheetHeader>
           <NavContent />
         </SheetContent>
@@ -138,18 +145,19 @@ export function SidebarNav({
     );
   }
 
+  if (!isOpen) {
+    return null; // Hide sidebar when collapsed on desktop
+  }
+
   return (
-    <ResizablePanelGroup direction="horizontal">
-      <ResizablePanel
-        defaultSize={20}
-        minSize={15}
-        maxSize={30}
-        collapsible
-        className="hidden md:block border-r"
-      >
-        <NavContent />
-      </ResizablePanel>
-      <ResizableHandle withHandle />
-    </ResizablePanelGroup>
+    <motion.div
+      initial={{ width: 0, opacity: 0 }}
+      animate={{ width: "280px", opacity: 1 }}
+      exit={{ width: 0, opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      className="hidden md:block border-r h-[calc(100vh-4rem)]"
+    >
+      <NavContent />
+    </motion.div>
   );
 }

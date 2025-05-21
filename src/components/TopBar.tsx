@@ -1,18 +1,28 @@
 
-import { Search, Github } from "lucide-react";
+import { Search, Github, Menu, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface TopBarProps {
   onOpenSearch: () => void;
+  onToggleSidebar: () => void;
+  sidebarOpen: boolean;
 }
 
-export function TopBar({ onOpenSearch }: TopBarProps) {
+export function TopBar({ onOpenSearch, onToggleSidebar, sidebarOpen }: TopBarProps) {
   return (
     <header className="sticky top-0 z-40 w-full glass-morphism">
       <div className="container flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-2">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={onToggleSidebar}
+            aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+          >
+            {sidebarOpen ? <ChevronLeft className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          </Button>
           <h1 className="text-lg font-bold">AwesomeListStaticSite</h1>
         </div>
         
@@ -34,6 +44,7 @@ export function TopBar({ onOpenSearch }: TopBarProps) {
             size="icon"
             className="md:hidden"
             onClick={onOpenSearch}
+            aria-label="Search"
           >
             <Search className="h-4 w-4" />
             <span className="sr-only">Search</span>
@@ -44,6 +55,7 @@ export function TopBar({ onOpenSearch }: TopBarProps) {
             target="_blank" 
             rel="noopener noreferrer"
             className="flex items-center"
+            aria-label="GitHub repository"
           >
             <Button variant="ghost" size="icon">
               <Github className="h-4 w-4" />
