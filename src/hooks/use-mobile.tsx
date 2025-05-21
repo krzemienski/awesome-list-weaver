@@ -16,9 +16,13 @@ export function useIsMobile() {
     
     // Add event listener for resize
     window.addEventListener("resize", checkIfMobile)
+    window.addEventListener("orientationchange", checkIfMobile)
     
     // Clean up
-    return () => window.removeEventListener("resize", checkIfMobile)
+    return () => {
+      window.removeEventListener("resize", checkIfMobile)
+      window.removeEventListener("orientationchange", checkIfMobile)
+    }
   }, [])
 
   return isMobile

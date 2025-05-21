@@ -10,6 +10,7 @@ import { Footer } from "@/components/Footer";
 import { mockCategories, mockResources } from "@/data/mock-data";
 import { Resource } from "@/types";
 import { motion } from "framer-motion";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
@@ -19,14 +20,19 @@ const Index = () => {
   const [pageTitle, setPageTitle] = useState<string>("All Resources");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     // Check if there's a stored sidebar preference
     const storedSidebarState = localStorage.getItem("sidebar-state");
     if (storedSidebarState) {
       setSidebarOpen(storedSidebarState === "open");
+    } else {
+      // Default to closed on mobile, open on desktop
+      setSidebarOpen(!isMobile);
+      localStorage.setItem("sidebar-state", isMobile ? "closed" : "open");
     }
-  }, []);
+  }, [isMobile]);
 
   useEffect(() => {
     if (selectedCategory && selectedSubcategory) {

@@ -135,6 +135,7 @@ export function SidebarNav({
     </ScrollArea>
   );
 
+  // Mobile view with sheet
   if (isMobile) {
     return (
       <>
@@ -145,7 +146,7 @@ export function SidebarNav({
           className="md:hidden fixed bottom-20 left-4 z-40 shadow-md bg-background"
           aria-label="Open sidebar"
         >
-          <Menu className="h-4 w-4" />
+          <Menu className="h-5 w-5" />
         </Button>
         
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
@@ -164,16 +165,14 @@ export function SidebarNav({
     );
   }
 
-  // For desktop view
+  // For desktop view - always render with proper visibility controlled by width
   return (
     <motion.div
       initial={{ width: isOpen ? "280px" : 0, opacity: isOpen ? 1 : 0 }}
       animate={{ width: isOpen ? "280px" : 0, opacity: isOpen ? 1 : 0 }}
       exit={{ width: 0, opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className={cn("hidden md:block border-r h-[calc(100vh-4rem)]", 
-        !isOpen && "w-0 opacity-0"
-      )}
+      className="hidden md:block border-r h-[calc(100vh-4rem)]"
     >
       {isOpen && <NavContent />}
     </motion.div>
