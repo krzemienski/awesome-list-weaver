@@ -1,9 +1,8 @@
 import { Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "@/hooks/use-theme";
 
 export function ThemeToggle() {
-  // We're keeping the component, but removing its functionality
+  // We're keeping the component, but it's just a static dark mode icon
   // since we're always in dark mode now
   
   return (

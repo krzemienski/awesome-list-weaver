@@ -45,14 +45,13 @@ export function ThemeProvider({
       localStorage.setItem(storageKey, "red");
     }
     
-    // Always force dark mode, ignoring saved preference
+    // Always force dark mode
     localStorage.setItem(`${storageKey}-dark-mode`, "true");
   }, [storageKey]);
 
-  // Apply theme and always use dark mode
+  // Always apply theme and force dark mode
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
-    // Always add dark class
     document.documentElement.classList.add("dark");
   }, [theme]);
 

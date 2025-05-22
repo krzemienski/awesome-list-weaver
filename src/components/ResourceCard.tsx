@@ -31,11 +31,14 @@ export function ResourceCard({ resource, index, className }: ResourceCardProps) 
       whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
     >
       <Card 
-        className={cn("hover:shadow-md transition-all duration-300", className)}
+        className={cn("hover:border-primary transition-all duration-300 bg-card border-border", className)}
       >
         <CardHeader className="pb-2">
-          <CardTitle className="flex items-center justify-between text-lg">
-            <span>{resource.title}</span>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <span>{resource.title}</span>
+              {resource.bookmark && <span className="text-primary">★</span>}
+            </CardTitle>
             <a 
               href={resource.url} 
               target="_blank" 
@@ -45,17 +48,24 @@ export function ResourceCard({ resource, index, className }: ResourceCardProps) 
             >
               <ExternalLink size={16} />
             </a>
-          </CardTitle>
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {resource.source && <span>{resource.source}</span>}
+          </div>
         </CardHeader>
         <CardContent>
           <CardDescription className="line-clamp-3">{resource.description}</CardDescription>
         </CardContent>
         <CardFooter className="pt-2">
           <div className="flex flex-wrap gap-2">
-            <Badge variant="outline">{resource.category}</Badge>
-            {resource.subcategory && (
-              <Badge variant="secondary">{resource.subcategory}</Badge>
-            )}
+            <Badge variant="secondary" className="bg-secondary text-secondary-foreground text-xs">
+              {resource.category}
+            </Badge>
+            {resource.tags && resource.tags.map((tag, i) => (
+              <Badge key={i} variant="outline" className="text-xs border-primary/20 bg-primary/5">
+                {tag}
+              </Badge>
+            ))}
           </div>
         </CardFooter>
       </Card>
