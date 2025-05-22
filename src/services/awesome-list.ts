@@ -3,7 +3,7 @@ import { Resource, Category, Subcategory } from "@/types";
 
 // Regex patterns for parsing the markdown
 const categoryRegex = /^#+\s+(.+?)$/;
-const linkRegex = /\[(.+?)\]\((.+?)\)\s*(?:-+\s*(.+?))?$/;
+const linkRegex = /\*\s+\[(.+?)\]\((.+?)\)(?:\s*-\s*(.+?))?$/;
 
 export async function fetchAwesomeList(url: string): Promise<{categories: Category[], resources: Resource[]}> {
   try {
@@ -74,13 +74,14 @@ function parseAwesomeList(markdown: string): {categories: Category[], resources:
       return;
     }
     
-    // Check if it's a resource (markdown link)
+    // Check if it's a resource (markdown link with * prefix)
     const linkMatch = line.match(linkRegex);
     if (linkMatch && currentCategory) {
       const title = linkMatch[1].trim();
       const url = linkMatch[2].trim();
       const description = linkMatch[3] ? linkMatch[3].trim() : '';
       
+      // Create a valid resource object
       const resource: Resource = {
         id: `resource-${allResources.length + 1}`,
         title,
@@ -91,6 +92,7 @@ function parseAwesomeList(markdown: string): {categories: Category[], resources:
         source: new URL(url).hostname
       };
       
+      // Add bookmark for anything with "Awesome" in the title or "curated" in the description
       if (title.toLowerCase().includes('awesome') || description.toLowerCase().includes('curated')) {
         resource.bookmark = true;
       }
@@ -102,11 +104,13 @@ function parseAwesomeList(markdown: string): {categories: Category[], resources:
       // If there's an active subcategory, add it there too
       if (currentSubcategory) {
         resource.subcategory = currentSubcategory.name;
+        resource.tags = [...resource.tags, currentSubcategory.name];
         currentSubcategory.resources.push(resource);
       }
     }
   });
   
+  console.log(`Parsed ${allResources.length} resources in ${categories.length} categories`);
   return {
     categories,
     resources: allResources

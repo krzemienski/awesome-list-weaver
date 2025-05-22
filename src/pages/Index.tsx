@@ -25,6 +25,7 @@ const Index = () => {
   const [pageTitle, setPageTitle] = useState<string>("All Resources");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [allResources, setAllResources] = useState<Resource[]>([]);
   const [showFilters, setShowFilters] = useState(false);
@@ -36,20 +37,36 @@ const Index = () => {
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
+      setError(null);
       try {
+        console.log("Fetching data from awesome list...");
         const awesomeListUrl = import.meta.env.VITE_AWESOME_LIST_URL || DEFAULT_AWESOME_LIST_URL;
+        console.log("Using URL:", awesomeListUrl);
+        
         const { categories, resources } = await fetchAwesomeList(awesomeListUrl);
+        console.log(`Loaded ${resources.length} resources in ${categories.length} categories`);
+        
+        if (resources.length === 0) {
+          throw new Error("No resources found in the awesome list");
+        }
+        
         setCategories(categories);
         setAllResources(resources);
         setDisplayResources(resources);
-        setIsLoading(false);
+        
+        toast({
+          title: "Resources loaded",
+          description: `${resources.length} awesome Python resources are ready`,
+        });
       } catch (error) {
         console.error("Failed to load awesome list:", error);
+        setError(error instanceof Error ? error.message : "Unknown error");
         toast({
           title: "Error loading resources",
           description: "Failed to load the awesome list. Please try again later.",
           variant: "destructive",
         });
+      } finally {
         setIsLoading(false);
       }
     };
@@ -168,6 +185,22 @@ const Index = () => {
       <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground">
         <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
         <p className="text-lg">Loading awesome resources...</p>
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground">
+        <div className="text-4xl mb-4">😢</div>
+        <h2 className="text-xl font-bold mb-2">Something went wrong</h2>
+        <p className="text-muted-foreground mb-4 text-center max-w-md">{error}</p>
+        <button 
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-md" 
+          onClick={() => window.location.reload()}
+        >
+          Try Again
+        </button>
       </div>
     );
   }
