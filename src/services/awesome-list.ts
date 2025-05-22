@@ -4,7 +4,8 @@ import { Resource, Category, Subcategory } from "@/types";
 // Regex patterns for parsing the markdown
 const categoryRegex = /^#+\s+(.+?)$/;
 const linkRegex = /\*\s+\[(.+?)\]\((.+?)\)(?:\s*-\s*(.+?))?$/;
-const titleRegex = /^#\s+(.+?)\s+(?:\[.*?\]\((.*?)\))?/;
+const titleRegex = /^#\s+(.+?)(?:\s+\[.*?\]\((.*?)\))?/;
+const badgeRegex = /\[\!\[.*?\]\(.*?\)\]\(.*?\)/g;
 const repoUrlRegex = /https:\/\/github\.com\/([^\/]+)\/([^\/]+)/;
 
 export async function fetchAwesomeList(url: string): Promise<{
@@ -14,12 +15,14 @@ export async function fetchAwesomeList(url: string): Promise<{
   githubUrl: string
 }> {
   try {
+    console.log("Fetching awesome list from URL:", url);
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to fetch awesome list: ${response.status}`);
     }
     
     const markdown = await response.text();
+    console.log("Markdown fetched, length:", markdown.length);
     return parseAwesomeList(markdown, url);
   } catch (error) {
     console.error("Error fetching awesome list:", error);
@@ -40,63 +43,59 @@ function parseAwesomeList(
   const categories: Category[] = [];
   const allResources: Resource[] = [];
   
-  // Extract list name and GitHub URL from the first few lines
-  let listName = "Awesome List";
-  let githubUrl = "https://github.com";
+  // Extract GitHub URL from source URL
+  let githubUrl = extractGithubUrl(sourceUrl);
   
-  // Try to extract title from first line that starts with #
-  for (let i = 0; i < Math.min(10, lines.length); i++) {
-    const titleMatch = lines[i].match(titleRegex);
-    if (titleMatch) {
-      listName = titleMatch[1].trim();
+  // Extract list name and clean it up
+  let listName = extractListName(lines, sourceUrl);
+  
+  console.log(`Initial extraction - List name: "${listName}", GitHub URL: ${githubUrl}`);
+  
+  let currentCategory: Category | null = null;
+  let currentSubcategory: Subcategory | null = null;
+  let inContentSection = false;
+  
+  // Skip header lines and find where the actual content begins
+  let contentStartIndex = 0;
+  for (let i = 0; i < Math.min(30, lines.length); i++) {
+    if (lines[i].match(/^#+\s+Contents?$/i)) {
+      inContentSection = true;
+      contentStartIndex = i + 1;
       break;
     }
   }
   
-  // Extract GitHub URL from source URL or content
-  try {
-    const urlParts = sourceUrl.match(repoUrlRegex);
-    if (urlParts && urlParts.length >= 3) {
-      const username = urlParts[1];
-      const repo = urlParts[2];
-      githubUrl = `https://github.com/${username}/${repo}`;
-    }
-  } catch (e) {
-    console.error("Error extracting GitHub URL:", e);
-    // Fall back to searching in content
-    for (let i = 0; i < Math.min(50, lines.length); i++) {
-      if (lines[i].includes("github.com")) {
-        const ghMatch = lines[i].match(/(https:\/\/github\.com\/[^)\s]+)/);
-        if (ghMatch && ghMatch[1]) {
-          githubUrl = ghMatch[1];
-          break;
-        }
+  if (!inContentSection) {
+    // If no Contents section, look for the first heading that's not the title
+    for (let i = 1; i < Math.min(30, lines.length); i++) {
+      if (lines[i].startsWith('#') && !lines[i].toLowerCase().includes(listName.toLowerCase())) {
+        contentStartIndex = i;
+        break;
       }
     }
   }
   
-  let currentCategory: Category | null = null;
-  let currentSubcategory: Subcategory | null = null;
-  
-  lines.forEach((line, index) => {
-    // Skip first lines until we hit actual content
-    if (index < 10 && !line.startsWith('#')) return;
+  // Process lines after the content section
+  for (let i = contentStartIndex; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
     
-    line = line.trim();
-    if (!line) return;
+    // Skip lines that appear to be badges or non-content elements
+    if (line.match(badgeRegex) || line.startsWith('<!--')) continue;
     
     // Check if it's a category (heading)
     const categoryMatch = line.match(categoryRegex);
     if (categoryMatch) {
       const categoryName = categoryMatch[1].trim();
       
-      // Skip main title and unwanted categories
-      if (categoryName === listName || 
-          categoryName === "Contents" || 
-          categoryName === "Contributing" ||
-          categoryName === "Resources") {
-        return;
+      // Skip unwanted categories
+      if (categoryName.toLowerCase() === "contents" || 
+          categoryName.toLowerCase() === "contributing" ||
+          categoryName.toLowerCase() === "resources") {
+        continue;
       }
+      
+      console.log("Found category:", categoryName);
       
       // Create a new category
       currentCategory = {
@@ -108,11 +107,11 @@ function parseAwesomeList(
       
       currentSubcategory = null;
       categories.push(currentCategory);
-      return;
+      continue;
     }
     
     // Check if it's a subcategory (subheading with multiple #s)
-    if (currentCategory && line.startsWith('##')) {
+    if (currentCategory && line.match(/^#{2,}\s+(.+?)$/)) {
       const subcategoryName = line.replace(/^#+\s+/, '').trim();
       currentSubcategory = {
         id: `subcategory-${currentCategory.subcategories.length + 1}`,
@@ -121,7 +120,7 @@ function parseAwesomeList(
       };
       
       currentCategory.subcategories.push(currentSubcategory);
-      return;
+      continue;
     }
     
     // Check if it's a resource (markdown link with * prefix)
@@ -139,11 +138,12 @@ function parseAwesomeList(
         description,
         category: currentCategory.name,
         tags: [currentCategory.name],
-        source: new URL(url).hostname
+        source: extractDomain(url)
       };
       
       // Add bookmark for anything with "Awesome" in the title or "curated" in the description
-      if (title.toLowerCase().includes('awesome') || description.toLowerCase().includes('curated')) {
+      if (title.toLowerCase().includes('awesome') || 
+          description.toLowerCase().includes('curated')) {
         resource.bookmark = true;
       }
       
@@ -158,10 +158,14 @@ function parseAwesomeList(
         currentSubcategory.resources.push(resource);
       }
     }
-  });
+  }
   
   console.log(`Parsed ${allResources.length} resources in ${categories.length} categories`);
-  console.log(`List name: ${listName}, GitHub URL: ${githubUrl}`);
+  console.log(`Final list name: "${listName}", GitHub URL: ${githubUrl}`);
+  
+  if (allResources.length === 0) {
+    console.warn("No resources were found. This might indicate a parsing issue.");
+  }
   
   return {
     categories,
@@ -169,4 +173,81 @@ function parseAwesomeList(
     listName,
     githubUrl
   };
+}
+
+// Helper function to extract domain from URL
+function extractDomain(url: string): string {
+  try {
+    return new URL(url).hostname;
+  } catch (e) {
+    return url;
+  }
+}
+
+// Helper function to extract GitHub URL
+function extractGithubUrl(sourceUrl: string): string {
+  try {
+    // First, try to extract from source URL
+    const urlParts = sourceUrl.match(repoUrlRegex);
+    if (urlParts && urlParts.length >= 3) {
+      const username = urlParts[1];
+      const repo = urlParts[2];
+      return `https://github.com/${username}/${repo}`;
+    }
+    
+    // If that fails, just return the raw GitHub URL if it is one
+    if (sourceUrl.includes('github.com')) {
+      return sourceUrl.split('#')[0]; // Remove any fragment
+    }
+  } catch (e) {
+    console.error("Error extracting GitHub URL:", e);
+  }
+  
+  return "https://github.com"; // Fallback
+}
+
+// Helper function to extract and clean list name
+function extractListName(lines: string[], sourceUrl: string): string {
+  // Start with a default name
+  let listName = "Awesome List";
+  
+  // First try to extract from the title (first heading)
+  for (let i = 0; i < Math.min(10, lines.length); i++) {
+    const titleMatch = lines[i].match(titleRegex);
+    if (titleMatch) {
+      listName = titleMatch[1].trim();
+      
+      // Clean up the name
+      listName = listName
+        .replace(badgeRegex, '') // Remove badges
+        .replace(/^\s*[#\s]*/, '') // Remove leading # and spaces
+        .trim();
+      
+      break;
+    }
+  }
+  
+  // If that didn't work, try to extract from URL
+  if (listName === "Awesome List" && sourceUrl.includes('github.com')) {
+    try {
+      const urlParts = sourceUrl.match(repoUrlRegex);
+      if (urlParts && urlParts.length >= 3) {
+        const repo = urlParts[2];
+        listName = repo
+          .replace(/^awesome-/i, 'Awesome ') // Replace awesome- prefix with Awesome space
+          .replace(/-/g, ' ') // Replace dashes with spaces
+          .split('/')
+          .pop() || listName;
+          
+        // Capitalize first letter of each word
+        listName = listName.split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+      }
+    } catch (e) {
+      console.error("Error extracting list name from URL:", e);
+    }
+  }
+  
+  return listName;
 }

@@ -29,7 +29,18 @@ export function useAwesomeData() {
       console.log(`List name: ${listName}, GitHub URL: ${githubUrl}`);
       
       if (resources.length === 0) {
-        throw new Error("No resources found in the awesome list");
+        console.warn("No resources found in the awesome list");
+        
+        // Still set the data we have, so we can show a proper empty state
+        setCategories(categories);
+        setAllResources(resources);
+        setListName(listName);
+        setGithubUrl(githubUrl);
+        
+        // But also set an error to show an error state
+        throw new Error(
+          "No resources could be found in this awesome list. This might be due to a formatting issue or an unsupported markdown structure."
+        );
       }
       
       setCategories(categories);
@@ -56,7 +67,7 @@ export function useAwesomeData() {
 
   useEffect(() => {
     loadData();
-  }, [toast]);
+  }, []);
 
   return {
     isLoading,

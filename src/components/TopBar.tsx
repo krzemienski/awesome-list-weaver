@@ -16,9 +16,16 @@ export function TopBar({
   onOpenSearch, 
   onToggleSidebar, 
   sidebarOpen,
-  listName = "AwesomeListStaticSite",
+  listName = "Awesome List",
   githubUrl = "https://github.com" 
 }: TopBarProps) {
+  // Clean up the list name to make it more readable
+  const displayName = listName
+    .replace(/^\[.*?\]\s*/, '') // Remove any leading [tags]
+    .replace(/\s*\(https:.*?\)/, '') // Remove URLs in parentheses
+    .replace(/\[\[Awesome\]\]/, 'Awesome') // Clean up [[Awesome]] format
+    .trim();
+
   return (
     <header className="sticky top-0 z-40 w-full glass-morphism">
       <div className="container flex h-16 items-center justify-between px-4">
@@ -32,7 +39,7 @@ export function TopBar({
           >
             {sidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
-          <h1 className="text-lg font-bold truncate max-w-[220px]">{listName}</h1>
+          <h1 className="text-lg font-bold truncate max-w-[220px]">{displayName}</h1>
         </div>
         
         <div className="flex items-center gap-4">
