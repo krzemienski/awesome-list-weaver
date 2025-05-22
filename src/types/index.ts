@@ -7,6 +7,8 @@ export type Resource = {
   category: string;
   subcategory?: string;
   tags?: string[];
+  bookmark?: boolean;
+  source?: string;
 };
 
 export type SearchResult = {
