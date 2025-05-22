@@ -12,6 +12,8 @@ export function useAwesomeData() {
   const [error, setError] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [allResources, setAllResources] = useState<Resource[]>([]);
+  const [listName, setListName] = useState<string>("Awesome List");
+  const [githubUrl, setGithubUrl] = useState<string>("https://github.com");
   const { toast } = useToast();
 
   const loadData = async () => {
@@ -22,8 +24,9 @@ export function useAwesomeData() {
       const awesomeListUrl = import.meta.env.VITE_AWESOME_LIST_URL || DEFAULT_AWESOME_LIST_URL;
       console.log("Using URL:", awesomeListUrl);
       
-      const { categories, resources } = await fetchAwesomeList(awesomeListUrl);
+      const { categories, resources, listName, githubUrl } = await fetchAwesomeList(awesomeListUrl);
       console.log(`Loaded ${resources.length} resources in ${categories.length} categories`);
+      console.log(`List name: ${listName}, GitHub URL: ${githubUrl}`);
       
       if (resources.length === 0) {
         throw new Error("No resources found in the awesome list");
@@ -31,10 +34,12 @@ export function useAwesomeData() {
       
       setCategories(categories);
       setAllResources(resources);
+      setListName(listName);
+      setGithubUrl(githubUrl);
       
       toast({
         title: "Resources loaded",
-        description: `${resources.length} awesome Python resources are ready`,
+        description: `${resources.length} awesome resources are ready`,
       });
     } catch (error) {
       console.error("Failed to load awesome list:", error);
@@ -58,6 +63,8 @@ export function useAwesomeData() {
     error,
     categories,
     allResources,
+    listName,
+    githubUrl,
     reloadData: loadData,
   };
 }

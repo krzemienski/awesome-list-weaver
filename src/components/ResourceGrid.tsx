@@ -7,6 +7,15 @@ import { Filter, Grid2x2, List, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { EmptyState } from "@/components/states/EmptyState";
+import { 
+  Pagination, 
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious
+} from "@/components/ui/pagination";
 
 interface ResourceGridProps {
   resources: Resource[];
@@ -29,6 +38,14 @@ export function ResourceGrid({
 }: ResourceGridProps) {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
+  const totalPages = Math.ceil(resources.length / itemsPerPage);
+  
+  // Reset to page 1 when resources change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [resources.length, selectedTags]);
   
   useEffect(() => {
     // Extract all unique tags from resources
@@ -45,6 +62,16 @@ export function ResourceGrid({
     setAvailableTags(Array.from(tags).sort());
   }, [resources]);
   
+  // Get current page items
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = resources.slice(indexOfFirstItem, indexOfLastItem);
+  
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -54,6 +81,42 @@ export function ResourceGrid({
         delayChildren: 0.1
       }
     }
+  };
+
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 5;
+    
+    if (totalPages <= maxPagesToShow) {
+      // Show all pages if there are fewer than maxPagesToShow
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Always include first page
+      pageNumbers.push(1);
+      
+      // Add middle pages with ellipsis if needed
+      if (currentPage > 3) {
+        pageNumbers.push('ellipsis');
+      }
+      
+      // Add pages around current page
+      for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+        pageNumbers.push(i);
+      }
+      
+      // Add ellipsis before last page if needed
+      if (currentPage < totalPages - 2) {
+        pageNumbers.push('ellipsis');
+      }
+      
+      // Always include last page
+      pageNumbers.push(totalPages);
+    }
+    
+    return pageNumbers;
   };
 
   return (
@@ -143,34 +206,66 @@ export function ResourceGrid({
       </div>
       
       {resources.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="text-4xl mb-4">😢</div>
-          <h3 className="text-xl font-medium mb-2">No resources found</h3>
-          <p className="text-muted-foreground mb-4">Try selecting a different category or searching for something else</p>
-          {selectedTags && selectedTags.length > 0 && onClearFilters && (
-            <Button onClick={onClearFilters}>Clear filters</Button>
-          )}
-        </div>
+        <EmptyState onAction={onClearFilters} actionLabel={selectedTags?.length ? "Clear filters" : undefined} />
       ) : (
-        <motion.div 
-          className={cn(
-            viewMode === "grid" 
-              ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4"
-              : "flex flex-col space-y-3"
+        <>
+          <motion.div 
+            className={cn(
+              viewMode === "grid" 
+                ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                : "flex flex-col space-y-3"
+            )}
+            variants={container}
+            initial="hidden"
+            animate="show"
+          >
+            {currentItems.map((resource, index) => (
+              <ResourceCard
+                key={resource.id}
+                resource={resource}
+                index={index}
+                className={viewMode === "list" ? "w-full" : ""}
+              />
+            ))}
+          </motion.div>
+          
+          {totalPages > 1 && (
+            <Pagination className="mt-8">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+                
+                {getPageNumbers().map((page, index) => (
+                  page === 'ellipsis' ? (
+                    <PaginationItem key={`ellipsis-${index}`}>
+                      <span className="px-4 py-2">...</span>
+                    </PaginationItem>
+                  ) : (
+                    <PaginationItem key={`page-${page}`}>
+                      <PaginationLink
+                        isActive={currentPage === page}
+                        onClick={() => handlePageChange(Number(page))}
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )
+                ))}
+                
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           )}
-          variants={container}
-          initial="hidden"
-          animate="show"
-        >
-          {resources.map((resource, index) => (
-            <ResourceCard
-              key={resource.id}
-              resource={resource}
-              index={index}
-              className={viewMode === "list" ? "w-full" : ""}
-            />
-          ))}
-        </motion.div>
+        </>
       )}
     </div>
   );

@@ -4,8 +4,15 @@ import { Resource, Category, Subcategory } from "@/types";
 // Regex patterns for parsing the markdown
 const categoryRegex = /^#+\s+(.+?)$/;
 const linkRegex = /\*\s+\[(.+?)\]\((.+?)\)(?:\s*-\s*(.+?))?$/;
+const titleRegex = /^#\s+(.+?)\s+(?:\[.*?\]\((.*?)\))?/;
+const repoUrlRegex = /https:\/\/github\.com\/([^\/]+)\/([^\/]+)/;
 
-export async function fetchAwesomeList(url: string): Promise<{categories: Category[], resources: Resource[]}> {
+export async function fetchAwesomeList(url: string): Promise<{
+  categories: Category[], 
+  resources: Resource[],
+  listName: string,
+  githubUrl: string
+}> {
   try {
     const response = await fetch(url);
     if (!response.ok) {
@@ -13,17 +20,60 @@ export async function fetchAwesomeList(url: string): Promise<{categories: Catego
     }
     
     const markdown = await response.text();
-    return parseAwesomeList(markdown);
+    return parseAwesomeList(markdown, url);
   } catch (error) {
     console.error("Error fetching awesome list:", error);
     throw error;
   }
 }
 
-function parseAwesomeList(markdown: string): {categories: Category[], resources: Resource[]} {
+function parseAwesomeList(
+  markdown: string, 
+  sourceUrl: string
+): {
+  categories: Category[], 
+  resources: Resource[],
+  listName: string,
+  githubUrl: string
+} {
   const lines = markdown.split('\n');
   const categories: Category[] = [];
   const allResources: Resource[] = [];
+  
+  // Extract list name and GitHub URL from the first few lines
+  let listName = "Awesome List";
+  let githubUrl = "https://github.com";
+  
+  // Try to extract title from first line that starts with #
+  for (let i = 0; i < Math.min(10, lines.length); i++) {
+    const titleMatch = lines[i].match(titleRegex);
+    if (titleMatch) {
+      listName = titleMatch[1].trim();
+      break;
+    }
+  }
+  
+  // Extract GitHub URL from source URL or content
+  try {
+    const urlParts = sourceUrl.match(repoUrlRegex);
+    if (urlParts && urlParts.length >= 3) {
+      const username = urlParts[1];
+      const repo = urlParts[2];
+      githubUrl = `https://github.com/${username}/${repo}`;
+    }
+  } catch (e) {
+    console.error("Error extracting GitHub URL:", e);
+    // Fall back to searching in content
+    for (let i = 0; i < Math.min(50, lines.length); i++) {
+      if (lines[i].includes("github.com")) {
+        const ghMatch = lines[i].match(/(https:\/\/github\.com\/[^)\s]+)/);
+        if (ghMatch && ghMatch[1]) {
+          githubUrl = ghMatch[1];
+          break;
+        }
+      }
+    }
+  }
   
   let currentCategory: Category | null = null;
   let currentSubcategory: Subcategory | null = null;
@@ -41,7 +91,7 @@ function parseAwesomeList(markdown: string): {categories: Category[], resources:
       const categoryName = categoryMatch[1].trim();
       
       // Skip main title and unwanted categories
-      if (categoryName === "Awesome Python" || 
+      if (categoryName === listName || 
           categoryName === "Contents" || 
           categoryName === "Contributing" ||
           categoryName === "Resources") {
@@ -111,8 +161,12 @@ function parseAwesomeList(markdown: string): {categories: Category[], resources:
   });
   
   console.log(`Parsed ${allResources.length} resources in ${categories.length} categories`);
+  console.log(`List name: ${listName}, GitHub URL: ${githubUrl}`);
+  
   return {
     categories,
-    resources: allResources
+    resources: allResources,
+    listName,
+    githubUrl
   };
 }

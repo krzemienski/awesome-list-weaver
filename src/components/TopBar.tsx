@@ -8,9 +8,17 @@ interface TopBarProps {
   onOpenSearch: () => void;
   onToggleSidebar: () => void;
   sidebarOpen: boolean;
+  listName: string;
+  githubUrl: string;
 }
 
-export function TopBar({ onOpenSearch, onToggleSidebar, sidebarOpen }: TopBarProps) {
+export function TopBar({ 
+  onOpenSearch, 
+  onToggleSidebar, 
+  sidebarOpen,
+  listName = "AwesomeListStaticSite",
+  githubUrl = "https://github.com" 
+}: TopBarProps) {
   return (
     <header className="sticky top-0 z-40 w-full glass-morphism">
       <div className="container flex h-16 items-center justify-between px-4">
@@ -24,7 +32,7 @@ export function TopBar({ onOpenSearch, onToggleSidebar, sidebarOpen }: TopBarPro
           >
             {sidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
-          <h1 className="text-lg font-bold">AwesomeListStaticSite</h1>
+          <h1 className="text-lg font-bold truncate max-w-[220px]">{listName}</h1>
         </div>
         
         <div className="flex items-center gap-4">
@@ -52,7 +60,7 @@ export function TopBar({ onOpenSearch, onToggleSidebar, sidebarOpen }: TopBarPro
           </Button>
           
           <a 
-            href="https://github.com" 
+            href={githubUrl} 
             target="_blank" 
             rel="noopener noreferrer"
             className="flex items-center"

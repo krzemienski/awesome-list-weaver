@@ -19,7 +19,7 @@ const Index = () => {
   const { toast } = useToast();
   
   // Custom hooks
-  const { isLoading, error, categories, allResources, reloadData } = useAwesomeData();
+  const { isLoading, error, categories, allResources, listName, githubUrl, reloadData } = useAwesomeData();
   const { sidebarOpen, toggleSidebar } = useSidebarState();
   const {
     selectedCategory,
@@ -57,7 +57,7 @@ const Index = () => {
   };
 
   if (isLoading) {
-    return <LoadingState />;
+    return <LoadingState message={`Loading ${listName || 'awesome resources'}...`} />;
   }
   
   if (error) {
@@ -70,6 +70,8 @@ const Index = () => {
         onOpenSearch={() => setSearchOpen(true)}
         onToggleSidebar={toggleSidebar}
         sidebarOpen={sidebarOpen}
+        listName={listName}
+        githubUrl={githubUrl}
       />
       
       <div className="flex flex-1 relative">
