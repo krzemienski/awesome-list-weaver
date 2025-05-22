@@ -11,32 +11,36 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Resource, SearchResult } from "@/types";
-import { mockResources } from "@/data/mock-data";
-import Fuse from "fuse.js";
 import { motion, AnimatePresence } from "framer-motion";
+import Fuse from "fuse.js";
 
 interface SearchDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSelectResource: (resource: Resource) => void;
+  resources: Resource[];
 }
 
 export function SearchDialog({ 
   open, 
   onOpenChange,
-  onSelectResource 
+  onSelectResource,
+  resources
 }: SearchDialogProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   
   // Initialize Fuse.js for searching with specified options
-  const fuse = new Fuse(mockResources, {
+  const fuse = new Fuse(resources, {
     keys: [
       { name: "title", weight: 0.7 },
-      { name: "description", weight: 0.3 }
+      { name: "description", weight: 0.3 },
+      { name: "category", weight: 0.2 },
+      { name: "tags", weight: 0.2 }
     ],
     includeScore: true,
-    threshold: 0.5
+    threshold: 0.5,
+    ignoreLocation: true
   });
   
   useEffect(() => {
@@ -60,7 +64,7 @@ export function SearchDialog({
     } else {
       setResults([]);
     }
-  }, [query]);
+  }, [query, fuse]);
   
   const handleSelect = (result: SearchResult) => {
     onSelectResource(result.item);
@@ -92,7 +96,7 @@ export function SearchDialog({
                 <CommandList>
                   <CommandEmpty>No results found.</CommandEmpty>
                   <CommandGroup heading="Results">
-                    {results.slice(0, 10).map((result) => (
+                    {results.slice(0, 15).map((result) => (
                       <CommandItem
                         key={result.item.id}
                         onSelect={() => handleSelect(result)}
@@ -100,8 +104,13 @@ export function SearchDialog({
                       >
                         <div className="flex flex-col">
                           <div className="font-medium">{result.item.title}</div>
-                          <div className="text-sm text-muted-foreground truncate max-w-full">
-                            {result.item.description}
+                          <div className="flex items-center gap-1 mt-1">
+                            <div className="text-xs text-primary bg-primary/10 rounded px-1.5 py-0.5">
+                              {result.item.category}
+                            </div>
+                            <div className="text-sm text-muted-foreground truncate max-w-[400px]">
+                              {result.item.description}
+                            </div>
                           </div>
                         </div>
                       </CommandItem>

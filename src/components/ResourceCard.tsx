@@ -49,9 +49,11 @@ export function ResourceCard({ resource, index, className }: ResourceCardProps) 
               <ExternalLink size={16} />
             </a>
           </div>
-          <div className="text-xs text-muted-foreground">
-            {resource.source && <span>{resource.source}</span>}
-          </div>
+          {resource.source && (
+            <div className="text-xs text-muted-foreground truncate">
+              {resource.source}
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           <CardDescription className="line-clamp-3">{resource.description}</CardDescription>
@@ -61,10 +63,18 @@ export function ResourceCard({ resource, index, className }: ResourceCardProps) 
             <Badge variant="secondary" className="bg-secondary text-secondary-foreground text-xs">
               {resource.category}
             </Badge>
-            {resource.tags && resource.tags.map((tag, i) => (
-              <Badge key={i} variant="outline" className="text-xs border-primary/20 bg-primary/5">
-                {tag}
+            {resource.subcategory && (
+              <Badge variant="secondary" className="bg-secondary/50 text-secondary-foreground text-xs">
+                {resource.subcategory}
               </Badge>
+            )}
+            {resource.tags && resource.tags
+              .filter(tag => tag !== resource.category && tag !== resource.subcategory)
+              .slice(0, 3)
+              .map((tag, i) => (
+                <Badge key={i} variant="outline" className="text-xs border-primary/20 bg-primary/5">
+                  {tag}
+                </Badge>
             ))}
           </div>
         </CardFooter>

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { ChevronDown, ChevronRight, Menu, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Menu, X, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -13,10 +13,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Category } from "@/types";
-import { mockCategories } from "@/data/mock-data";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Input } from "@/components/ui/input";
 
 interface SidebarNavProps {
+  categories: Category[];
   selectedCategory?: string;
   selectedSubcategory?: string;
   onSelectCategory: (categoryId: string) => void;
@@ -25,6 +26,7 @@ interface SidebarNavProps {
 }
 
 export function SidebarNav({
+  categories,
   selectedCategory,
   selectedSubcategory,
   onSelectCategory,
@@ -33,7 +35,14 @@ export function SidebarNav({
 }: SidebarNavProps) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredCategories, setFilteredCategories] = useState<Category[]>(categories);
   const isMobile = useIsMobile();
+
+  // Update filtered categories when the original list changes
+  useEffect(() => {
+    setFilteredCategories(categories);
+  }, [categories]);
 
   // Auto-expand the selected category
   useEffect(() => {
@@ -44,6 +53,46 @@ export function SidebarNav({
       }));
     }
   }, [selectedCategory]);
+
+  // Filter categories based on search query
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredCategories(categories);
+      return;
+    }
+    
+    const query = searchQuery.toLowerCase();
+    const filtered = categories.map(category => {
+      const matchesCategory = category.name.toLowerCase().includes(query);
+      
+      // Filter subcategories
+      const matchingSubcategories = category.subcategories.filter(sub => 
+        sub.name.toLowerCase().includes(query)
+      );
+      
+      // If the category matches or has matching subcategories, include it
+      if (matchesCategory || matchingSubcategories.length > 0) {
+        return {
+          ...category,
+          subcategories: matchingSubcategories
+        };
+      }
+      
+      return null;
+    }).filter(Boolean) as Category[];
+    
+    setFilteredCategories(filtered);
+    
+    // Auto-expand categories with matching subcategories
+    const newExpanded = { ...expanded };
+    filtered.forEach(category => {
+      if (category.subcategories.length > 0) {
+        newExpanded[category.id] = true;
+      }
+    });
+    setExpanded(newExpanded);
+    
+  }, [searchQuery, categories]);
 
   const toggleExpanded = (categoryId: string) => {
     setExpanded((prev) => ({
@@ -67,72 +116,91 @@ export function SidebarNav({
   };
 
   const NavContent = () => (
-    <ScrollArea className="h-[calc(100vh-4rem)]">
-      <div className="py-4 px-2">
-        {mockCategories.map((category) => (
-          <div key={category.id} className="mb-2">
-            <div className="flex items-center">
-              <Button
-                variant="ghost"
-                className={cn(
-                  "w-full justify-start px-2",
-                  selectedCategory === category.id && "bg-secondary"
-                )}
-                onClick={() => handleCategoryClick(category.id)}
-              >
-                <span>{category.name}</span>
-                <span className="ml-auto text-xs text-muted-foreground">
-                  {category.resources.length}
-                </span>
-              </Button>
-              {category.subcategories.length > 0 && (
+    <>
+      <div className="p-2">
+        <div className="relative">
+          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search categories..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-8 h-9 bg-background/50"
+          />
+        </div>
+      </div>
+      <ScrollArea className="h-[calc(100vh-8rem)]">
+        <div className="py-2 px-2">
+          {filteredCategories.map((category) => (
+            <div key={category.id} className="mb-2">
+              <div className="flex items-center">
                 <Button
                   variant="ghost"
-                  size="sm"
-                  className="p-0 h-8 w-8"
-                  onClick={() => toggleExpanded(category.id)}
-                >
-                  {expanded[category.id] ? (
-                    <ChevronDown size={16} />
-                  ) : (
-                    <ChevronRight size={16} />
+                  className={cn(
+                    "w-full justify-between px-2",
+                    selectedCategory === category.id && "bg-secondary"
                   )}
-                </Button>
-              )}
-            </div>
-            
-            <AnimatePresence>
-              {expanded[category.id] && category.subcategories.length > 0 && (
-                <motion.div 
-                  className="pl-4 pt-1"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.2 }}
+                  onClick={() => handleCategoryClick(category.id)}
                 >
-                  {category.subcategories.map((subcategory) => (
-                    <Button
-                      key={subcategory.id}
-                      variant="ghost"
-                      className={cn(
-                        "w-full justify-start px-2 py-1 h-8 mb-1",
-                        selectedSubcategory === subcategory.id && "bg-secondary"
-                      )}
-                      onClick={() => handleSubcategoryClick(category.id, subcategory.id)}
-                    >
-                      <span>{subcategory.name}</span>
-                      <span className="ml-auto text-xs text-muted-foreground">
-                        {subcategory.resources.length}
-                      </span>
-                    </Button>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        ))}
-      </div>
-    </ScrollArea>
+                  <span className="text-left truncate">{category.name}</span>
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    {category.resources.length}
+                  </span>
+                </Button>
+                {category.subcategories.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="p-0 h-8 w-8"
+                    onClick={() => toggleExpanded(category.id)}
+                  >
+                    {expanded[category.id] ? (
+                      <ChevronDown size={16} />
+                    ) : (
+                      <ChevronRight size={16} />
+                    )}
+                  </Button>
+                )}
+              </div>
+              
+              <AnimatePresence>
+                {expanded[category.id] && category.subcategories.length > 0 && (
+                  <motion.div 
+                    className="pl-4 pt-1"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {category.subcategories.map((subcategory) => (
+                      <Button
+                        key={subcategory.id}
+                        variant="ghost"
+                        className={cn(
+                          "w-full justify-between px-2 py-1 h-8 mb-1",
+                          selectedSubcategory === subcategory.id && "bg-secondary"
+                        )}
+                        onClick={() => handleSubcategoryClick(category.id, subcategory.id)}
+                      >
+                        <span className="text-left truncate">{subcategory.name}</span>
+                        <span className="ml-auto text-xs text-muted-foreground">
+                          {subcategory.resources.length}
+                        </span>
+                      </Button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ))}
+
+          {filteredCategories.length === 0 && (
+            <div className="py-4 text-center text-sm text-muted-foreground">
+              No categories found
+            </div>
+          )}
+        </div>
+      </ScrollArea>
+    </>
   );
 
   // Mobile view with sheet
