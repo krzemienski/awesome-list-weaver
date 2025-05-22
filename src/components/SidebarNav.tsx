@@ -1,20 +1,9 @@
 
 import { useState, useEffect } from "react";
-import { ChevronDown, ChevronRight, Menu, X, Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetClose,
-} from "@/components/ui/sheet";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { Category } from "@/types";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Input } from "@/components/ui/input";
+import { Category } from "@/types";
+import { MobileSidebar } from "./sidebar/MobileSidebar";
+import { DesktopSidebar } from "./sidebar/DesktopSidebar";
 
 interface SidebarNavProps {
   categories: Category[];
@@ -34,7 +23,6 @@ export function SidebarNav({
   isOpen,
 }: SidebarNavProps) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [sheetOpen, setSheetOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredCategories, setFilteredCategories] = useState<Category[]>(categories);
   const isMobile = useIsMobile();
@@ -101,148 +89,36 @@ export function SidebarNav({
     }));
   };
 
-  const handleCategoryClick = (categoryId: string) => {
-    onSelectCategory(categoryId);
-    if (isMobile) {
-      setSheetOpen(false);
-    }
-  };
-
-  const handleSubcategoryClick = (categoryId: string, subcategoryId: string) => {
-    onSelectSubcategory(categoryId, subcategoryId);
-    if (isMobile) {
-      setSheetOpen(false);
-    }
-  };
-
-  const NavContent = () => (
-    <>
-      <div className="p-2">
-        <div className="relative">
-          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search categories..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8 h-9 bg-background/50"
-          />
-        </div>
-      </div>
-      <ScrollArea className="h-[calc(100vh-8rem)]">
-        <div className="py-2 px-2">
-          {filteredCategories.map((category) => (
-            <div key={category.id} className="mb-2">
-              <div className="flex items-center">
-                <Button
-                  variant="ghost"
-                  className={cn(
-                    "w-full justify-between px-2",
-                    selectedCategory === category.id && "bg-secondary"
-                  )}
-                  onClick={() => handleCategoryClick(category.id)}
-                >
-                  <span className="text-left truncate">{category.name}</span>
-                  <span className="ml-auto text-xs text-muted-foreground">
-                    {category.resources.length}
-                  </span>
-                </Button>
-                {category.subcategories.length > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="p-0 h-8 w-8"
-                    onClick={() => toggleExpanded(category.id)}
-                  >
-                    {expanded[category.id] ? (
-                      <ChevronDown size={16} />
-                    ) : (
-                      <ChevronRight size={16} />
-                    )}
-                  </Button>
-                )}
-              </div>
-              
-              <AnimatePresence>
-                {expanded[category.id] && category.subcategories.length > 0 && (
-                  <motion.div 
-                    className="pl-4 pt-1"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    {category.subcategories.map((subcategory) => (
-                      <Button
-                        key={subcategory.id}
-                        variant="ghost"
-                        className={cn(
-                          "w-full justify-between px-2 py-1 h-8 mb-1",
-                          selectedSubcategory === subcategory.id && "bg-secondary"
-                        )}
-                        onClick={() => handleSubcategoryClick(category.id, subcategory.id)}
-                      >
-                        <span className="text-left truncate">{subcategory.name}</span>
-                        <span className="ml-auto text-xs text-muted-foreground">
-                          {subcategory.resources.length}
-                        </span>
-                      </Button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          ))}
-
-          {filteredCategories.length === 0 && (
-            <div className="py-4 text-center text-sm text-muted-foreground">
-              No categories found
-            </div>
-          )}
-        </div>
-      </ScrollArea>
-    </>
-  );
-
   // Mobile view with sheet
   if (isMobile) {
     return (
-      <>
-        <Button 
-          variant="ghost" 
-          size="icon"
-          onClick={() => setSheetOpen(true)}
-          className="md:hidden fixed bottom-20 left-4 z-40 shadow-md bg-background"
-          aria-label="Open sidebar"
-        >
-          <Menu className="h-5 w-5" />
-        </Button>
-        
-        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-          <SheetContent side="left" className="w-[280px] p-0">
-            <SheetHeader className="px-4 py-3 border-b">
-              <SheetTitle>Categories</SheetTitle>
-              <SheetClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
-                <X className="h-4 w-4" />
-                <span className="sr-only">Close</span>
-              </SheetClose>
-            </SheetHeader>
-            <NavContent />
-          </SheetContent>
-        </Sheet>
-      </>
+      <MobileSidebar
+        categories={filteredCategories}
+        selectedCategory={selectedCategory}
+        selectedSubcategory={selectedSubcategory}
+        expanded={expanded}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSelectCategory={onSelectCategory}
+        onSelectSubcategory={onSelectSubcategory}
+        onToggleExpanded={toggleExpanded}
+      />
     );
   }
 
-  // For desktop view - always render with proper visibility controlled by width
+  // For desktop view
   return (
-    <motion.div
-      initial={{ width: isOpen ? "280px" : 0, opacity: isOpen ? 1 : 0 }}
-      animate={{ width: isOpen ? "280px" : 0, opacity: isOpen ? 1 : 0 }}
-      exit={{ width: 0, opacity: 0 }}
-      transition={{ duration: 0.3 }}
-      className="hidden md:block border-r h-[calc(100vh-4rem)]"
-    >
-      {isOpen && <NavContent />}
-    </motion.div>
+    <DesktopSidebar
+      isOpen={isOpen}
+      categories={filteredCategories}
+      selectedCategory={selectedCategory}
+      selectedSubcategory={selectedSubcategory}
+      expanded={expanded}
+      searchQuery={searchQuery}
+      onSearchChange={setSearchQuery}
+      onSelectCategory={onSelectCategory}
+      onSelectSubcategory={onSelectSubcategory}
+      onToggleExpanded={toggleExpanded}
+    />
   );
 }
