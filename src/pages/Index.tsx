@@ -68,8 +68,6 @@ const Index = () => {
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       <TopBar 
         onOpenSearch={() => setSearchOpen(true)}
-        onToggleSidebar={toggleSidebar}
-        sidebarOpen={sidebarOpen}
         listName={listName}
         githubUrl={githubUrl}
       />
