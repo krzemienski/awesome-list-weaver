@@ -4,6 +4,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Category } from "@/types";
 import { MobileSidebar } from "./sidebar/MobileSidebar";
 import { DesktopSidebar } from "./sidebar/DesktopSidebar";
+import { useSidebarState } from "@/hooks/use-sidebar-state";
 
 interface SidebarNavProps {
   categories: Category[];
@@ -26,6 +27,7 @@ export function SidebarNav({
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredCategories, setFilteredCategories] = useState<Category[]>(categories);
   const isMobile = useIsMobile();
+  const { mobileSheetOpen, setMobileSheetOpen } = useSidebarState();
 
   // Update filtered categories when the original list changes
   useEffect(() => {
@@ -98,6 +100,8 @@ export function SidebarNav({
         selectedSubcategory={selectedSubcategory}
         expanded={expanded}
         searchQuery={searchQuery}
+        sheetOpen={mobileSheetOpen}
+        onOpenChange={setMobileSheetOpen}
         onSearchChange={setSearchQuery}
         onSelectCategory={onSelectCategory}
         onSelectSubcategory={onSelectSubcategory}

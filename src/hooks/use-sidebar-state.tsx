@@ -4,6 +4,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 export function useSidebarState() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -19,6 +20,13 @@ export function useSidebarState() {
   }, [isMobile]);
 
   const toggleSidebar = () => {
+    // On mobile, we toggle the sheet directly
+    if (isMobile) {
+      setMobileSheetOpen(!mobileSheetOpen);
+      return;
+    }
+    
+    // On desktop, we toggle the sidebar state
     const newState = !sidebarOpen;
     setSidebarOpen(newState);
     localStorage.setItem("sidebar-state", newState ? "open" : "closed");
@@ -26,6 +34,8 @@ export function useSidebarState() {
 
   return {
     sidebarOpen,
+    mobileSheetOpen,
+    setMobileSheetOpen,
     toggleSidebar
   };
 }

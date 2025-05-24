@@ -8,7 +8,6 @@ import {
   SheetTitle,
   SheetClose,
 } from "@/components/ui/sheet";
-import { useState } from "react";
 import { SearchInput } from "./SearchInput";
 import { CategoryList } from "./CategoryList";
 import { Category } from "@/types";
@@ -19,6 +18,8 @@ interface MobileSidebarProps {
   selectedSubcategory?: string;
   expanded: Record<string, boolean>;
   searchQuery: string;
+  sheetOpen: boolean;
+  onOpenChange: (open: boolean) => void;
   onSearchChange: (query: string) => void;
   onSelectCategory: (categoryId: string) => void;
   onSelectSubcategory: (categoryId: string, subcategoryId: string) => void;
@@ -31,21 +32,21 @@ export function MobileSidebar({
   selectedSubcategory,
   expanded,
   searchQuery,
+  sheetOpen,
+  onOpenChange,
   onSearchChange,
   onSelectCategory,
   onSelectSubcategory,
   onToggleExpanded,
 }: MobileSidebarProps) {
-  const [sheetOpen, setSheetOpen] = useState(false);
-
   const handleCategoryClick = (categoryId: string) => {
     onSelectCategory(categoryId);
-    setSheetOpen(false);
+    onOpenChange(false);
   };
 
   const handleSubcategoryClick = (categoryId: string, subcategoryId: string) => {
     onSelectSubcategory(categoryId, subcategoryId);
-    setSheetOpen(false);
+    onOpenChange(false);
   };
 
   return (
@@ -53,14 +54,14 @@ export function MobileSidebar({
       <Button 
         variant="ghost" 
         size="icon"
-        onClick={() => setSheetOpen(true)}
+        onClick={() => onOpenChange(true)}
         className="md:hidden fixed bottom-20 left-4 z-40 shadow-md bg-background"
         aria-label="Open sidebar"
       >
         <Menu className="h-5 w-5" />
       </Button>
       
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+      <Sheet open={sheetOpen} onOpenChange={onOpenChange}>
         <SheetContent side="left" className="w-[280px] p-0">
           <SheetHeader className="px-4 py-3 border-b">
             <SheetTitle>Categories</SheetTitle>

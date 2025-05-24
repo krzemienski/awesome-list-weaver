@@ -3,22 +3,21 @@ import { Search, Github, Menu, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useSidebarState } from "@/hooks/use-sidebar-state";
 
 interface TopBarProps {
   onOpenSearch: () => void;
-  onToggleSidebar: () => void;
-  sidebarOpen: boolean;
   listName: string;
   githubUrl: string;
 }
 
 export function TopBar({ 
   onOpenSearch, 
-  onToggleSidebar, 
-  sidebarOpen,
   listName = "Awesome List",
   githubUrl = "https://github.com" 
 }: TopBarProps) {
+  const { sidebarOpen, toggleSidebar } = useSidebarState();
+
   // Clean up the list name to make it more readable
   const displayName = listName
     .replace(/^\[.*?\]\s*/, '') // Remove any leading [tags]
@@ -33,7 +32,7 @@ export function TopBar({
           <Button 
             variant="ghost" 
             size="icon"
-            onClick={onToggleSidebar}
+            onClick={toggleSidebar}
             aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
             className="hover:bg-secondary"
           >
